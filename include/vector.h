@@ -1,3 +1,6 @@
+#ifndef VECTOR_H
+#define VECTOR_H
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -44,7 +47,6 @@ void free##name(name* vec) {                                     \
 void print##name(name vec) {                                     \
   for (int i = 0; i < vec.length; i++)                           \
     printFunc(vec.values[i]);                                    \
-  printf("\n");                                                  \
 }                                                                \
 
 
@@ -59,3 +61,5 @@ CREATE_VECTOR_ASSETS(int, IntVector, printInt, 0);
 CREATE_VECTOR_ASSETS(char, CharVector, printChar, 0);
 CREATE_VECTOR_ASSETS(char, String, printStringChar, 0);
 CREATE_VECTOR_ASSETS(String, StringVector, printString, 1);
+
+#endif
