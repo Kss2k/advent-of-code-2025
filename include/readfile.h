@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 
-StringVector readfile(const char* path) {
+StringVector readfile(const char* path, const char sep) {
   FILE *fptr = fopen(path, "r");
 
   if (fptr == NULL) {
@@ -23,7 +23,7 @@ StringVector readfile(const char* path) {
     c = fgetc(fptr);
     if (newline) line = initString();
 
-    if (c == '\n' || c == EOF) {
+    if (c == '\n' || c == sep || c == EOF) {
       if (line.length) appendStringVector(&lines, line);
       newline = 1;
     } else {

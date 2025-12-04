@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define DEFAULT_CAPACITY 8
 
@@ -48,6 +49,14 @@ void print##name(name vec) {                                     \
   for (int i = 0; i < vec.length; i++)                           \
     printFunc(vec.values[i]);                                    \
 }                                                                \
+                                                                 \
+                                                                 \
+name copy##name(name vec) {                                      \
+  type* copiedvals;                                              \
+  memcpy(copiedvals, vec.values, vec.capacity * sizeof(type));   \
+  vec.values = copiedvals;                                       \
+  return vec;                                                    \
+}                                                                \
 
 
 void freeint(const int* x) { return; } // just stops compile errors, its never called
@@ -60,6 +69,8 @@ void printStringChar(const char x) { printf("%c", x); }
 CREATE_VECTOR_ASSETS(int, IntVector, printInt, 0);
 CREATE_VECTOR_ASSETS(char, CharVector, printChar, 0);
 CREATE_VECTOR_ASSETS(char, String, printStringChar, 0);
-CREATE_VECTOR_ASSETS(String, StringVector, printString, 1);
+
+void printStringNewline(const String x) { printString(x); printf(" [%d]\n", x.length); }
+CREATE_VECTOR_ASSETS(String, StringVector, printStringNewline, 1);
 
 #endif

@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  StringVector lines = readfile(argv[1]);
+  StringVector lines = readfile(argv[1], '\n');
 
   int dial = 50;
   int counter_p1 = 0;
