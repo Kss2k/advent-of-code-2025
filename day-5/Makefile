@@ -1,2 +1,2 @@
 main: main.cpp
-	g++ -I ../include main.cpp -o main -lm
+	gcc -I ../include main.cpp -o main -lm
