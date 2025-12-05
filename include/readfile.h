@@ -35,6 +35,9 @@ StringVector readfile(const char* path, const char sep) {
       break;
   }
 
+  if (line.length==0) freeString(&line);
+  fclose(fptr);
+
   return lines;
 }
 

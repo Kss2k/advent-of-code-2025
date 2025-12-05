@@ -7,7 +7,7 @@
 
 #define DEFAULT_CAPACITY 8
 
-#define CREATE_VECTOR_ASSETS(type, name, printFunc, freeScalars) \
+#define CREATE_VECTOR_ASSETS(type, name, printFunc, freeScalars, freeFunc) \
                                                                  \
 typedef struct {                                                 \
   type* values;                                                  \
@@ -38,7 +38,7 @@ void append##name(name* vec, const type value) {                 \
 void free##name(name* vec) {                                     \
   if (freeScalars) {                                             \
     for (int i = 0; i < vec->length; i++)                        \
-      free##type(&vec->values[i]);                               \
+      freeFunc(&vec->values[i]);                                 \
   }                                                              \
   free(vec->values);                                             \
   vec->capacity = 0;                                             \
@@ -61,16 +61,19 @@ name copy##name(name vec) {                                      \
 
 void freeint(const int* x) { return; } // just stops compile errors, its never called
 void freechar(const char* x) { return; } // just stops compile errors, its never called
-                                           //
+void freellint(const long long* x) { return; }
+
 void printInt(const int x) { printf("%d\n", x); }
+void printLongLongInt(const int x) { printf("%lld\n", x); }
 void printChar(const char x) { printf("%c\n", x); }
 void printStringChar(const char x) { printf("%c", x); }
 
-CREATE_VECTOR_ASSETS(int, IntVector, printInt, 0);
-CREATE_VECTOR_ASSETS(char, CharVector, printChar, 0);
-CREATE_VECTOR_ASSETS(char, String, printStringChar, 0);
+CREATE_VECTOR_ASSETS(int, IntVector, printInt, 0, freeint);
+CREATE_VECTOR_ASSETS(long long, LongLongIntVector, printLongLongInt, 0, freellint);
+CREATE_VECTOR_ASSETS(char, CharVector, printChar, 0, freechar);
+CREATE_VECTOR_ASSETS(char, String, printStringChar, 0, freechar);
 
 void printStringNewline(const String x) { printString(x); printf(" [%d]\n", x.length); }
-CREATE_VECTOR_ASSETS(String, StringVector, printStringNewline, 1);
+CREATE_VECTOR_ASSETS(String, StringVector, printStringNewline, 1, freeString);
 
 #endif
