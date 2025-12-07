@@ -75,8 +75,10 @@ CREATE_VECTOR_ASSETS(char, String, printStringChar, 0, freechar);
 
 void printStringNewline(const String x) { printString(x); printf(" [%d]\n", x.length); }
 void printIntArraySpace(const IntVector x) { for (int i = 0; i < x.length; i++) printf("%d ", x.values[i]); printf("\n"); }
+void printLongLongIntArraySpace(const LongLongIntVector x) { for (int i = 0; i < x.length; i++) printf("%lld ", x.values[i]); printf("\n"); }
 
 CREATE_VECTOR_ASSETS(String, StringVector, printStringNewline, 1, freeString);
 CREATE_VECTOR_ASSETS(IntVector, IntArray, printIntArraySpace, 1, freeIntVector);
+CREATE_VECTOR_ASSETS(LongLongIntVector, LongLongIntArray, printLongLongIntArraySpace, 1, freeLongLongIntVector);
 
 #endif
