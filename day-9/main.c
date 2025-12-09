@@ -32,6 +32,18 @@ typedef struct {
 } Rectangle;
 
 
+void printLine(const Line line);
+
+
+static inline long minl(const long a, const long b) { return a < b ? a : b; }
+static inline long maxl(const long a, const long b) { return a > b ? a : b; }
+
+
+static inline int pointsEqual(const Point a, const Point b) {
+  return a.x == b.x && a.y == b.y;
+}
+
+
 Line createLine(const Point p0, const Point p1) {
   Line line;
   line.p0 = p0;
@@ -42,9 +54,26 @@ Line createLine(const Point p0, const Point p1) {
 }
 
 
-Rectangle createRectangle(const Point A, const Point C) {
+Rectangle createRectangle(Point A, Point C) {
   // A and C are opposite corners
   Rectangle box;
+
+  // Shrnk box to make boundary checking easier
+  if (A.x > C.x) {
+    A.x--;
+    C.x++;
+  } else {
+    A.x++;
+    C.x--;
+  }
+  
+  if (A.y > C.y) {
+    A.y--;
+    C.y++;
+  } else {
+    A.y++;
+    C.y--;
+  }
 
   Point B;
   B.x = A.x;
@@ -68,45 +97,76 @@ Rectangle createRectangle(const Point A, const Point C) {
 }
 
 
-int lineCrossesLines(const Line line0, const Line line1, const LineVector lines) {
-  for (int i = 0; i < lines.length; i++) {
-    const Line opposing = lines.values[i];
-
-    if (opposing.vertical == line1.vertical &&
-        opposing.horizontal == line1.horizontal) {
-      continue;
-    }
-
-    if (line1.vertical) {
-      // opposing is horizontal
-      // First check that they intersect
-     
-      // Boundary checking depends on where were coming from
-      const int comesFromRight = line0.p0.x > line1.p0.x;
-      const int comesFromLeft = line0.p0.x > line1.p0.x;
-
-      if (comesFromRight) {
-        const int ok = 
-      }
-    } else if (line.horizontal) {
-
-    } else {
-      printf("line is not horizontal or vertical! ");
-      printLine(line);
-      exit(-99);
-    }
-  }
-
-  return 0;
-}
-
-
 void printLine(const Line line) { 
   const char type = line.vertical ? 'v' : line.horizontal ? 'h' : '?';
   printf("(%ld,%ld)->(%ld,%ld) [%c]\n", line.p0.x, line.p0.y, line.p1.x, line.p1.y, type);
 }
 void freeLine(const Line* line) { return; }
 CREATE_VECTOR_ASSETS(Line, LineVector, printLine, 0, freeLine);
+
+static inline int signl(const long value) {
+  return (value > 0) - (value < 0);
+}
+
+
+
+int lineCrossesLines(const Line line, const LineVector lines) {
+  if (!(line.vertical || line.horizontal)) {
+    #if DEBUG
+      printf("line is not horizontal or vertical! ");
+      printLine(line);
+    #endif
+    return 0; 
+  }
+
+  for (int i = 0; i < lines.length; i++) {
+    const Line opposing = lines.values[i];
+
+    if (opposing.vertical == line.vertical &&
+        opposing.horizontal == line.horizontal) {
+      continue;
+    }
+
+    if (line.vertical && opposing.horizontal) {
+      const long lineX = line.p0.x;
+      const long minOppX = minl(opposing.p0.x, opposing.p1.x);
+      const long maxOppX = maxl(opposing.p0.x, opposing.p1.x);
+      const long oppY = opposing.p0.y;
+      const long minLineY = minl(line.p0.y, line.p1.y);
+      const long maxLineY = maxl(line.p0.y, line.p1.y);
+
+      if (lineX >= minOppX && lineX <= maxOppX &&
+          oppY >= minLineY && oppY <= maxLineY)
+        return 1;
+
+    } else if (line.horizontal && opposing.vertical) {
+      const long lineY = line.p0.y;
+      const long minOppY = minl(opposing.p0.y, opposing.p1.y);
+      const long maxOppY = maxl(opposing.p0.y, opposing.p1.y);
+      const long oppX = opposing.p0.x;
+      const long minLineX = minl(line.p0.x, line.p1.x);
+      const long maxLineX = maxl(line.p0.x, line.p1.x);
+
+      if (lineY >= minOppY && lineY <= maxOppY &&
+          oppX >= minLineX && oppX <= maxLineX)
+        return 1;
+    }
+
+  }
+
+  return 0;
+}
+
+
+int rectangleCrossesLines(Rectangle box, LineVector lines) {
+  return (
+    lineCrossesLines(box.ab, lines) ||
+    lineCrossesLines(box.bc, lines) ||
+    lineCrossesLines(box.cd, lines) ||
+    lineCrossesLines(box.da, lines)
+  );
+}
+
 
 void printPoint(const Point point) { printf("(%ld,%ld)\n", point.x, point.y); }
 void freePoint(const Point* point) { return; }
@@ -155,7 +215,7 @@ long long absll(const long long x) {
 
 
 long long calcArea(const Point p0, const Point p1) {
-  return absll(p1.x - p0.x + 1) * absll(p1.y - p0.y + 1);
+  return (absll(p1.x - p0.x) + 1) * (absll(p1.y - p0.y) + 1);
 }
 
 
@@ -172,6 +232,10 @@ int main(int argc, char* argv[]) {
     parseInputLine(&points, input.values[i]);
 
   LineVector lines = createLines(points);
+
+  printStringVector(input);
+  printPointVector(points);
+  printLineVector(lines);
  
   // Task 1
   long long maxArea1 = 0;
@@ -189,11 +253,26 @@ int main(int argc, char* argv[]) {
   }
 
   printf("Answer Task 1: %lld\n", maxArea1);
+  
+  // Task 2
+  long long maxArea2 = 0;
+  for (int i = 0; i < points.length; i++) {
+    const Point p0 = points.values[i];
 
+    for (int j = 0; j < i; j++) {
+      const Point p1 = points.values[j];
+      const long long area = calcArea(p0, p1); 
+      const Rectangle box = createRectangle(p0, p1);
+      const int crosses = rectangleCrossesLines(box, lines);
 
-  printStringVector(input);
-  printPointVector(points);
-  printLineVector(lines);
+      #if DEBUG
+        printf("IDX:%d,%d, P0:(%d,%d), P1:(%d,%d) Crosses: %d, Area: %lld\n", i, j, p0.x, p0.y, p1.x, p1.y, crosses, area);
+      #endif
+      if (!crosses && area > maxArea2) maxArea2 = area;
+    }
+  }
+  printf("Answer Task 2: %lld\n", maxArea2);
+
   freePointVector(&points);
   freeLineVector(&lines);
   freeStringVector(&input);
